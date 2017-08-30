@@ -28,6 +28,8 @@ body {
     padding: 11px 32px;
     background-color: #dddddd;
     cursor: pointer;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     overflow: hidden; }
     .dropdown-select-app__item:hover {
       background-color: #a2a2a2; }

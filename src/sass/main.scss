@@ -34,6 +34,8 @@ body {
 		padding: 11px 32px;
 		background-color: #dddddd;
 		cursor: pointer;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 		overflow: hidden;
 
 		&:hover {
