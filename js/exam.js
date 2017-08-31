@@ -72,46 +72,91 @@
 
 __webpack_require__(1);
 
-var _security = __webpack_require__(6);
+var _security = __webpack_require__(2);
 
 var _security2 = _interopRequireDefault(_security);
 
+var _html = __webpack_require__(7);
+
+var _html2 = _interopRequireDefault(_html);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+/**
+ * Get data from data source
+ * @return {Object}
+ */
 function getDataFromDataSource() {
     return TABLE_DATA;
 }
 
-function appendAppWithTemplateItem(app) {
-    var appName = _security2.default.clearXSS(app.name);
-    return '\n        <li class="dropdown-select-app__item" onclick="selectApp(' + app.id + ')">\n            <img class="dropdown-select-app__thumbnail" src="' + app.thumbnailUrl + '" alt="">\n            <span class="dropdown-select-app__name">' + appName + '</span>\n        </li>\n    ';
+/**
+ * Action when click outsite input and dropdownlist
+ * @param  {Event} event
+ * @return {*}
+ */
+function clickOutSiteInput(event) {
+    var targetElement = event.target;
+    if (targetElement === inputElement || targetElement === dropdownApp || _html2.default.checkIsDescendant(dropdownApp, targetElement)) {
+        return;
+    }
+
+    hideDropdownApp();
 }
 
+/**
+ * Append app with html template
+ * @param  {Object} app - App data
+ * @return {string} - HTML string
+ */
+function appendAppWithTemplateItem(app) {
+    var appName = _security2.default.clearXSS(app.name);
+    return '\n        <li class="dropdown-select-app__item">\n            <img class="dropdown-select-app__thumbnail" src="' + app.thumbnailUrl + '" alt="">\n            <span class="dropdown-select-app__name">' + appName + '</span>\n        </li>\n    ';
+}
+
+/**
+ * Render content of dropdown list
+ */
 function renderDropdownListApp() {
     var dropDownListHtmlContent = '';
 
     listApp.forEach(function (app) {
         dropDownListHtmlContent += appendAppWithTemplateItem(app);
     });
-    console.log(listApp);
+
     dropdownApp.innerHTML = dropDownListHtmlContent;
 }
 
+/**
+ * Show dropdown list apps
+ */
 function showDropdownApp() {
     dropdownApp.classList.add('show');
 }
 
+/**
+ * Hide dropdown list apps
+ */
 function hideDropdownApp() {
     dropdownApp.classList.remove('show');
 }
 
+/**
+ * Action when focus input
+ */
 function beginSuggestApp() {
     renderDropdownListApp();
     showDropdownApp();
 }
 
+/**
+ * Action when typing input
+ * @param  {Event} event
+ * @return {*}
+ */
 function suggestApp(event) {
     if ([37, 38, 39, 40].indexOf(event.keyCode) > -1) {
+        // Do nothing when press key left, up, right, down
         return;
     }
 
@@ -120,15 +165,20 @@ function suggestApp(event) {
     renderDropdownListApp();
 }
 
+/**
+ * Search app when typeing input
+ * @param  {string} value - Value of input
+ * @return {Array}
+ */
 function searchApp(value) {
     if (value === '') {
-        return getDataFromDataSource();
+        return dataSource;
     }
 
     var patt = new RegExp(value, 'i');
     var searchResult = [];
 
-    listApp.forEach(function (app) {
+    dataSource.forEach(function (app) {
         if (patt.test(app.name)) {
             searchResult.push(app);
         }
@@ -137,26 +187,45 @@ function searchApp(value) {
     return searchResult;
 }
 
-function selectApp(appId) {
-    console.log(appId);
-    var app = listApp.find(function (app) {
-        var indexApp = listApp.indexOf(app);
-        return indexApp > -1;
-    });
+/**
+ * Handler event when click dropdown list
+ * @param  {Event} event
+ */
+function selectApp(event) {
+    var parentNode = null;
 
-    inputElement.value = app.name;
+    if (event.target.className === 'dropdown-select-app__item') {
+        parentNode = event.target;
+    }
+
+    if (event.target.parentNode.className === 'dropdown-select-app__item') {
+        parentNode = event.target.parentNode;
+    }
+
+    if (!parentNode) {
+        return;
+        hideDropdownApp();
+    }
+
+    inputElement.value = parentNode.querySelector('.dropdown-select-app__name').textContent;
+
+    hideDropdownApp();
 }
 
+// Global variables
 var inputElement = document.querySelector('.box-select-app__input');
 var dropdownApp = document.querySelector('.dropdown-select-app');
-var listApp = getDataFromDataSource();
+var dataSource = getDataFromDataSource();
+var listApp = dataSource;
 
 document.addEventListener("DOMContentLoaded", function (event) {
     inputElement.addEventListener('focus', beginSuggestApp);
 
-    inputElement.addEventListener('focusout', hideDropdownApp);
+    document.addEventListener('click', clickOutSiteInput);
 
     inputElement.addEventListener('input', suggestApp);
+
+    dropdownApp.addEventListener('click', selectApp);
 });
 
 /***/ }),
@@ -166,11 +235,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 2 */,
-/* 3 */,
-/* 4 */,
-/* 5 */,
-/* 6 */
+/* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -190,6 +255,41 @@ exports.default = {
         res = res.replace('<', '&lt;');
 
         return res;
+    }
+};
+
+/***/ }),
+/* 3 */,
+/* 4 */,
+/* 5 */,
+/* 6 */,
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.default = {
+    /**
+     * Check parent and child is relative
+     * @param  {Object} parent - parent node
+     * @param  {Object} child - child node
+     * @return {boolean}
+     */
+    checkIsDescendant: function checkIsDescendant(parent, child) {
+        var node = child.parentNode;
+        while (node != null) {
+            if (node === parent) {
+                return true;
+            }
+
+            node = node.parentNode;
+        }
+
+        return false;
     }
 };
 
