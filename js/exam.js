@@ -80,6 +80,10 @@ var _html = __webpack_require__(3);
 
 var _html2 = _interopRequireDefault(_html);
 
+var _storage = __webpack_require__(8);
+
+var _storage2 = _interopRequireDefault(_storage);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /**
@@ -155,6 +159,8 @@ function beginSuggestApp() {
  * @return {*}
  */
 function suggestApp(event) {
+    showDropdownApp();
+
     listApp = searchApp(inputElement.value);
 
     renderDropdownListApp();
@@ -180,6 +186,9 @@ function selectAppWithDirectiveKey(event) {
         if (event.keyCode === 13) {
             // When press enter key
             inputElement.value = activeApp.querySelector('.dropdown-select-app__name').textContent;
+
+            inputHistoryStorage.add(inputElement.value); // Add input value to Local Storage
+
             event.preventDefault();
             hideDropdownApp();
 
@@ -255,11 +264,13 @@ function selectAppWithDirectiveKey(event) {
  * @return {Array}
  */
 function searchApp(value) {
-    if (value === '') {
+    var strSearch = value.trim();
+
+    if (strSearch === '') {
         return dataSource;
     }
 
-    var patt = new RegExp(value, 'i');
+    var patt = new RegExp(strSearch, 'i');
     var searchResult = [];
 
     dataSource.forEach(function (app) {
@@ -293,6 +304,8 @@ function selectApp(event) {
 
     inputElement.value = parentNode.querySelector('.dropdown-select-app__name').textContent;
 
+    inputHistoryStorage.add(inputElement.value); // Add input value to Local Storage
+
     hideDropdownApp();
 }
 
@@ -301,6 +314,8 @@ var inputElement = document.querySelector('.box-select-app__input');
 var dropdownApp = document.querySelector('.dropdown-select-app');
 var dataSource = getDataFromDataSource();
 var listApp = dataSource;
+
+var inputHistoryStorage = new _storage2.default('linevn-input-history');
 
 document.addEventListener("DOMContentLoaded", function (event) {
     inputElement.addEventListener('focus', beginSuggestApp);
@@ -373,6 +388,69 @@ exports.default = {
         return false;
     }
 };
+
+/***/ }),
+/* 4 */,
+/* 5 */,
+/* 6 */,
+/* 7 */,
+/* 8 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Storage = function () {
+    function Storage(key) {
+        _classCallCheck(this, Storage);
+
+        this.key = key;
+        this.store = [];
+
+        this.load();
+    }
+
+    /**
+     * Load data from Local Storage
+     */
+
+
+    _createClass(Storage, [{
+        key: "load",
+        value: function load() {
+            var dataString = window.localStorage.getItem(this.key);
+
+            if (dataString) {
+                this.store = JSON.parse(dataString);
+            }
+        }
+
+        /**
+         * Add input history into storage
+         * @param {string} value - input history
+         */
+
+    }, {
+        key: "add",
+        value: function add(value) {
+            this.store.unshift(value);
+
+            window.localStorage.setItem(this.key, JSON.stringify(this.store));
+        }
+    }]);
+
+    return Storage;
+}();
+
+exports.default = Storage;
 
 /***/ })
 /******/ ]);

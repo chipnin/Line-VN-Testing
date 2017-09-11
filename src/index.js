@@ -2,6 +2,7 @@ import './sass/main.scss';
 
 import securityLib from './utils/security';
 import htmlLib from './utils/html';
+import Storage from './utils/storage';
 
 /**
  * Get data from data source
@@ -83,6 +84,8 @@ function beginSuggestApp() {
  * @return {*}
  */
 function suggestApp(event) {
+    showDropdownApp();
+
     listApp = searchApp(inputElement.value);
 
     renderDropdownListApp();
@@ -106,6 +109,9 @@ function selectAppWithDirectiveKey(event) {
 
         if (event.keyCode === 13) { // When press enter key
             inputElement.value = activeApp.querySelector('.dropdown-select-app__name').textContent;
+            
+            inputHistoryStorage.add(inputElement.value); // Add input value to Local Storage
+            
             event.preventDefault();
             hideDropdownApp();
 
@@ -178,11 +184,13 @@ function selectAppWithDirectiveKey(event) {
  * @return {Array}
  */
 function searchApp(value) {
-    if (value === '') {
+    let strSearch = value.trim();
+    
+    if (strSearch === '') {
         return dataSource;
     }
 
-    let patt = new RegExp(value, 'i');
+    let patt = new RegExp(strSearch, 'i');
     let searchResult = [];
 
     dataSource.forEach((app) => {
@@ -215,7 +223,9 @@ function selectApp(event) {
     }
 
     inputElement.value = parentNode.querySelector('.dropdown-select-app__name').textContent;
-
+    
+    inputHistoryStorage.add(inputElement.value); // Add input value to Local Storage
+    
     hideDropdownApp();
 }
 
@@ -224,6 +234,8 @@ let inputElement = document.querySelector('.box-select-app__input');
 let dropdownApp = document.querySelector('.dropdown-select-app');
 let dataSource = getDataFromDataSource();
 let listApp = dataSource;
+
+let inputHistoryStorage = new Storage('linevn-input-history');
 
 document.addEventListener("DOMContentLoaded", function(event) { 
     inputElement.addEventListener('focus', beginSuggestApp);
