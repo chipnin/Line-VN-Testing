@@ -52,7 +52,7 @@ body {
 		white-space: nowrap;
 		overflow: hidden;
 
-		&:hover {
+		&.is_active {
 			background-color: #a2a2a2;
 		}
 	}

@@ -39,7 +39,7 @@ body {
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden; }
-    .dropdown-select-app__item:hover {
+    .dropdown-select-app__item.is_active {
       background-color: #a2a2a2; }
   .dropdown-select-app__thumbnail {
     width: 38px;

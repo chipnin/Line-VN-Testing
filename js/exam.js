@@ -76,7 +76,7 @@ var _security = __webpack_require__(2);
 
 var _security2 = _interopRequireDefault(_security);
 
-var _html = __webpack_require__(7);
+var _html = __webpack_require__(3);
 
 var _html2 = _interopRequireDefault(_html);
 
@@ -111,7 +111,7 @@ function clickOutSiteInput(event) {
  */
 function appendAppWithTemplateItem(app) {
     var appName = _security2.default.clearXSS(app.name);
-    return '\n        <li class="dropdown-select-app__item">\n            <img class="dropdown-select-app__thumbnail" src="' + app.thumbnailUrl + '" alt="">\n            <span class="dropdown-select-app__name">' + appName + '</span>\n        </li>\n    ';
+    return '\n        <li class="dropdown-select-app__item" data-id="' + app.id + '">\n            <img class="dropdown-select-app__thumbnail" src="' + app.thumbnailUrl + '" alt="">\n            <span class="dropdown-select-app__name">' + appName + '</span>\n        </li>\n    ';
 }
 
 /**
@@ -155,14 +155,98 @@ function beginSuggestApp() {
  * @return {*}
  */
 function suggestApp(event) {
-    if ([37, 38, 39, 40].indexOf(event.keyCode) > -1) {
-        // Do nothing when press key left, up, right, down
-        return;
-    }
-
     listApp = searchApp(inputElement.value);
 
     renderDropdownListApp();
+}
+
+/**
+ * Action when typing input
+ * @param  {Event} event
+ * @return {*}
+ */
+function selectAppWithDirectiveKey(event) {
+    if ([13, 38, 40].indexOf(event.keyCode) > -1 && dropdownApp.classList.contains('show')) {
+        // Process when press key enter or key up or key down
+        var activeApp = dropdownApp.querySelector('.dropdown-select-app__item.is_active');
+
+        if (!activeApp) {
+            activeApp = dropdownApp.querySelector('.dropdown-select-app__item');
+            activeApp.classList.add('is_active');
+
+            return;
+        }
+
+        if (event.keyCode === 13) {
+            // When press enter key
+            inputElement.value = activeApp.querySelector('.dropdown-select-app__name').textContent;
+            event.preventDefault();
+            hideDropdownApp();
+
+            return;
+        }
+
+        var _listApp = dropdownApp.querySelectorAll('.dropdown-select-app__item');
+        var totalApp = _listApp.length;
+
+        if (totalApp === 1) {
+            return;
+        }
+
+        var nextApp = activeApp;
+        var activeAppIndex = 0;
+        var nextAppIndex = 0;
+        var activeAppId = activeApp.getAttribute('data-id');
+
+        // Find index of active app
+        _listApp.forEach(function (app, index) {
+            app.classList.remove('is_active');
+            var appId = app.getAttribute('data-id');
+
+            if (appId === activeAppId) {
+                activeAppIndex = index;
+            }
+        });
+
+        switch (activeAppIndex) {
+            case 0:
+                if (event.keyCode === 38) {
+                    // when key up
+                    nextAppIndex = activeAppIndex;
+                } else {
+                    nextAppIndex = activeAppIndex + 1;
+                }
+
+                break;
+            case totalApp - 1:
+                if (event.keyCode === 38) {
+                    // when key up
+                    nextAppIndex = activeAppIndex - 1;
+                } else {
+                    nextAppIndex = activeAppIndex;
+                }
+
+                break;
+            default:
+                if (event.keyCode === 38) {
+                    // when key up
+                    nextAppIndex = activeAppIndex - 1;
+                } else {
+                    nextAppIndex = activeAppIndex + 1;
+                }
+
+                break;
+        }
+
+        nextApp = _listApp[nextAppIndex];
+        // Add active class for next app
+        nextApp.classList.add('is_active');
+
+        // Scroll dropdown list apps
+        dropdownApp.scrollTop = nextApp.offsetHeight * (nextAppIndex - 1);
+
+        return;
+    }
 }
 
 /**
@@ -203,8 +287,8 @@ function selectApp(event) {
     }
 
     if (!parentNode) {
-        return;
         hideDropdownApp();
+        return;
     }
 
     inputElement.value = parentNode.querySelector('.dropdown-select-app__name').textContent;
@@ -224,6 +308,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
     document.addEventListener('click', clickOutSiteInput);
 
     inputElement.addEventListener('input', suggestApp);
+    inputElement.addEventListener('keydown', selectAppWithDirectiveKey);
 
     dropdownApp.addEventListener('click', selectApp);
 });
@@ -259,11 +344,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 3 */,
-/* 4 */,
-/* 5 */,
-/* 6 */,
-/* 7 */
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";

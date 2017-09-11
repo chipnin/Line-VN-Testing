@@ -35,7 +35,7 @@ function clickOutSiteInput(event) {
 function appendAppWithTemplateItem(app) {
     const appName = securityLib.clearXSS(app.name);
     return `
-        <li class="dropdown-select-app__item">
+        <li class="dropdown-select-app__item" data-id="${app.id}">
             <img class="dropdown-select-app__thumbnail" src="${app.thumbnailUrl}" alt="">
             <span class="dropdown-select-app__name">${appName}</span>
         </li>
@@ -83,13 +83,93 @@ function beginSuggestApp() {
  * @return {*}
  */
 function suggestApp(event) {
-    if ([37, 38, 39, 40].indexOf(event.keyCode) > -1) { // Do nothing when press key left, up, right, down
-        return;
-    }
-    
     listApp = searchApp(inputElement.value);
 
     renderDropdownListApp();
+}
+
+/**
+ * Action when typing input
+ * @param  {Event} event
+ * @return {*}
+ */
+function selectAppWithDirectiveKey(event) {
+    if ([13, 38, 40].indexOf(event.keyCode) > -1 && dropdownApp.classList.contains('show')) { // Process when press key enter or key up or key down
+        let activeApp = dropdownApp.querySelector('.dropdown-select-app__item.is_active');
+        
+        if (!activeApp) {
+            activeApp = dropdownApp.querySelector('.dropdown-select-app__item');
+            activeApp.classList.add('is_active');
+
+            return;
+        }
+
+        if (event.keyCode === 13) { // When press enter key
+            inputElement.value = activeApp.querySelector('.dropdown-select-app__name').textContent;
+            event.preventDefault();
+            hideDropdownApp();
+
+            return;
+        }
+
+        let listApp = dropdownApp.querySelectorAll('.dropdown-select-app__item');
+        let totalApp = listApp.length;
+
+        if (totalApp === 1) {
+            return;
+        }
+
+        let nextApp = activeApp;
+        let activeAppIndex = 0;
+        let nextAppIndex = 0;
+        let activeAppId = activeApp.getAttribute('data-id');
+
+        // Find index of active app
+        listApp.forEach((app, index) => {
+            app.classList.remove('is_active');
+            let appId = app.getAttribute('data-id');
+            
+            if (appId === activeAppId) {
+                activeAppIndex = index;
+            }
+        });
+
+        switch (activeAppIndex) {
+            case 0:
+                if (event.keyCode === 38) { // when key up
+                    nextAppIndex = activeAppIndex;
+                } else {
+                    nextAppIndex = activeAppIndex + 1;
+                }
+                
+                break;
+            case totalApp - 1:
+                if (event.keyCode === 38) { // when key up
+                    nextAppIndex = activeAppIndex - 1;
+                } else {
+                    nextAppIndex = activeAppIndex;
+                }
+
+                break;
+            default:
+                if (event.keyCode === 38) { // when key up
+                    nextAppIndex = activeAppIndex - 1;
+                } else {
+                    nextAppIndex = activeAppIndex + 1;
+                }
+
+                break;
+        }
+
+        nextApp = listApp[nextAppIndex];
+        // Add active class for next app
+        nextApp.classList.add('is_active');
+
+        // Scroll dropdown list apps
+        dropdownApp.scrollTop = nextApp.offsetHeight * (nextAppIndex - 1);
+
+        return;
+    }
 }
 
 /**
@@ -130,8 +210,8 @@ function selectApp(event) {
     }
 
     if (!parentNode) {
-        return;
         hideDropdownApp();
+        return;
     }
 
     inputElement.value = parentNode.querySelector('.dropdown-select-app__name').textContent;
@@ -151,6 +231,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     document.addEventListener('click', clickOutSiteInput);
 
     inputElement.addEventListener('input', suggestApp);
+    inputElement.addEventListener('keydown', selectAppWithDirectiveKey);
 
     dropdownApp.addEventListener('click', selectApp);
 });
