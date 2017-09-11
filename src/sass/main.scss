@@ -67,3 +67,9 @@ body {
 		vertical-align: middle;
 	}
 }
+
+@media screen and (max-width: 480px) {
+	.box-select-app {
+		width: 100%;
+	}
+}
